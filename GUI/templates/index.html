@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Image Labeling GUI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+
+    
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex flex-col items-center justify-center">
+            <h1 class="text-4xl font-bold mb-8 text-center">
+                {{ 'Unknown Images' if class_name == 'unknown' else 'Monolete Images' if class_name == 'monolete' else 'Trilete Images' }}
+            </h1>
+        </div>
+
+        
+        <div class="flex flex-col md:flex-row">
+            <div class="md:w-1/4 mb-6 md:mb-0">
+                <h2 class="text-2xl font-semibold mb-4">Labels</h2>
+                <div class="space-y-2">
+                    <div class="flex items-center">
+                        <span class="w-4 h-4 bg-green-500 border border-black mr-2"></span>
+                        <span>Monolete</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-4 h-4 bg-red-500 border border-black mr-2"></span>
+                        <span>Trilete</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-4 h-4 bg-gray-500 border border-black mr-4"></span>
+                        <span>Unknown</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="md:w-3/4 mx-auto">
+                <!-- Adjust the grid to have exactly 6 columns on medium and larger screens -->
+                <div class="image-container grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5 auto-rows-max">
+                    {% set folder_map = {'unknown': 'unknown', 'monolete': 'monolete', 'trilete': 'trilete'} %}
+                    <!-- Limit to 24 images (6 columns x 4 rows = 24 images) -->
+                    {% for prediction in predictions[:20] %}
+                    <div class="image-box cursor-pointer" style="border-color: {{ prediction['color'] }};" 
+                         onclick="handleImageClick('{{ prediction['file_name'] }}', '{{ prediction['pred'] }}')">
+                        <img src="{{ url_for('static', filename='images/' + folder_map.get(prediction['pred']) + '/' + prediction['file_name']) }}" 
+                             alt="Classification image" class="w-full h-auto">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            </div>
+            
+        </div>
+
+        <div class="flex justify-center" >
+            <div class="inline-flex rounded-md shadow-sm" role="group" style="margin-left:20% !important">
+                {% if current_page > 1 %}
+                <a href="{{ url_for('index', page=current_page-1) }}" class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700">
+                    Previous
+                </a>
+                {% endif %}
+        
+                {% if current_page > 3 %}
+                <a href="{{ url_for('index', page=1) }}" class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border-t border-b border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700">
+                    1
+                </a>
+                {% if current_page > 4 %}
+                <span class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border-t border-b border-gray-200">...</span>
+                {% endif %}
+                {% endif %}
+        
+                {% for page_num in range((current_page - 2 if current_page > 2 else 1), (current_page + 3 if current_page + 2 < total_pages else total_pages + 1)) %}
+                {% if page_num == current_page %}
+                <span class="px-4 py-2 text-sm font-medium text-blue-700 bg-gray-100 border-t border-b border-gray-200">
+                    {{ page_num }}
+                </span>
+                {% else %}
+                <a href="{{ url_for('index', page=page_num) }}" class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border-t border-b border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700">
+                    {{ page_num }}
+                </a>
+                {% endif %}
+                {% endfor %}
+        
+                {% if current_page < total_pages - 2 %}
+                {% if current_page < total_pages - 3 %}
+                <span class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border-t border-b border-gray-200">...</span>
+                {% endif %}
+                <a href="{{ url_for('index', page=total_pages) }}" class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border-t border-b border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700">
+                    {{ total_pages }}
+                </a>
+                {% endif %}
+        
+                {% if current_page < total_pages %}
+                <a href="{{ url_for('index', page=current_page+1) }}" class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-r-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700">
+                    Next
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="flex justify-center mt-4" style="margin-left:20% !important">
+        <a href="{{ url_for('show_class', class_name='monolete', page=1) }}" class="px-4 py-2 text-sm font-medium text-white bg-green-500 rounded hover:bg-green-600">
+            Show Monolete
+        </a>
+        <a href="{{ url_for('show_class', class_name='trilete', page=1) }}" class="ml-4 px-4 py-2 text-sm font-medium text-white bg-red-500 rounded hover:bg-red-600">
+            Show Trilete
+        </a>
+        <a href="{{ url_for('show_class', class_name='unknown', page=1) }}" class="ml-4 px-4 py-2 text-sm font-medium text-white bg-gray-500 rounded hover:bg-red-600">
+            Show Unknown
+        </a>
+    </div>
+
+    <!-- Modal for choosing label -->
+    <div id="labelModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3 class="text-xl font-semibold mb-4">Choose a label:</h3>
+            <div class="space-y-4">
+                <button class="w-full py-2 bg-green-500 text-white rounded hover:bg-green-600" onclick="setClass('monolete')">Monolete</button>
+                <button class="w-full py-2 bg-red-500 text-white rounded hover:bg-red-600" onclick="setClass('trilete')">Trilete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentImageId;
+        let currentClass;
+        function handleImageClick(imageId, className) {
+            console.log(className);
+            currentImageId = imageId;
+            currentClass = className;
+            if (className === 'unknown') {
+                console.log(imageId);
+                document.getElementById('labelModal').style.display = 'block';
+            } else {
+                console.log(imageId);
+                toggleClass();
+            }
+        }
+
+        function toggleClass() {
+            const newClass = (currentClass === 'monolete') ? 'trilete' : 'monolete';
+            submitClass(newClass);
+        }
+
+        function setClass(newClass) {
+            const classValue = (newClass === 'monolete') ? 'monolete' : 'trilete';
+            submitClass(classValue);
+            closeModal();
+        }
+
+        function submitClass(newClass) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ url_for('update') }}";
+
+            const inputImageId = document.createElement('input');
+            inputImageId.type = 'hidden';
+            inputImageId.name = 'image_id';
+            inputImageId.value = currentImageId;
+            
+            const inputPrvClass = document.createElement('input');
+            inputPrvClass.type = 'hidden';
+            inputPrvClass.name = 'prv_class';
+            inputPrvClass.value = currentClass;
+
+            const inputClass = document.createElement('input');
+            inputClass.type = 'hidden';
+            inputClass.name = 'class';
+            inputClass.value = newClass;
+
+            form.appendChild(inputImageId);
+            form.appendChild(inputPrvClass);
+            form.appendChild(inputClass);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function closeModal() {
+            document.getElementById('labelModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('labelModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+
+</html>

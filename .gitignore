@@ -1,0 +1,8 @@
+.env/
+__pycache__/
+dataset/
+*.zip
+GUI/__pycache__
+GUI/model_weights
+GUI/static/images/*
+.DS_Store

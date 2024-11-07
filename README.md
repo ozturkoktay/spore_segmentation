@@ -1,7 +1,7 @@
-# Fern Spore Analysis Project
+# Fern Spore Analysis
 
 ## Project Overview
-This project aims to analyze and categorize fern spores using machine learning and deep learning techniques. It includes scripts for data augmentation, clustering (DBSCAN and K-Means), image segmentation, and a GUI for user-friendly interaction. The goal is to develop a image labeling tool to make the labeling faster using the previously trained model.
+This project aims to analyze and categorize fern spores using machine learning and deep learning techniques. It includes scripts for data augmentation, clustering (DBSCAN and K-Means), image segmentation, and a GUI for user-friendly interaction. The goal is to develop an image labeling tool to make the labeling faster using the previously trained model.
 
 ---
 
